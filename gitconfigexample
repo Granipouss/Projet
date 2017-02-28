@@ -1,3 +1,5 @@
+# ~/.gitconfig
+
 [user]
 	name = Prenom Nom
 	email = monemail@ensta.fr
