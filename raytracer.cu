@@ -46,8 +46,8 @@ inline float randF (float min, float max) { return min + (((float) rand()) / (fl
 
 struct Sphere {
   float3 center;                      /// position of the sphere
-  // float radius, radius2;              /// sphere radius and radius^2
-  float radius2;              /// sphere radius^2
+  // float radius, radius2;           /// sphere radius and radius^2
+  float radius2;                      /// sphere radius^2
   float3 surfaceColor, emissionColor; /// surface color and emission (light)
   float transparency, reflection;     /// surface transparency and reflectivity
 
@@ -218,7 +218,7 @@ void render () {
 // we render that scene, by calling the render() function.
 int main(int argc, char **argv) {
   printf("Starting...\n");
-
+  srand48(13);
   // Create scene on host
   Sphere *scene_h = new Sphere[nbSpheres + 2];
   // Spheres
