@@ -1,0 +1,6 @@
+raytracer
+*.ppm
+*.exe
+*.exp
+*.lib
+*.o
