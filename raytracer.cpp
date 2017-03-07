@@ -209,15 +209,15 @@ Vec3f trace (
 }
 
 void saveImage (unsigned width, unsigned height, Vec3f* image) {
-	// Save result to a PPM image (keep these flags if you compile under Windows)
-	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
-	ofs << "P6\n" << width << " " << height << "\n255\n";
-	for (unsigned i = 0; i < width * height; ++i) {
-		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-					 (unsigned char)(std::min(float(1), image[i].y) * 255) <<
-					 (unsigned char)(std::min(float(1), image[i].z) * 255);
-	}
-	ofs.close();
+  // Save result to a PPM image (keep these flags if you compile under Windows)
+  std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
+  ofs << "P6\n" << width << " " << height << "\n255\n";
+  for (unsigned i = 0; i < width * height; ++i) {
+  ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
+   (unsigned char)(std::min(float(1), image[i].y) * 255) <<
+   (unsigned char)(std::min(float(1), image[i].z) * 255);
+  }
+  ofs.close();
 }
 
 //[comment]
@@ -238,23 +238,23 @@ void render (
   unsigned num_cpus = std::thread::hardware_concurrency();
   std::vector<std::thread> threads;
   auto iterate = [width, height, end, &num_line, &pixel, &spheres] () {
-		// init thread
-		float invWidth = 1 / float(width), invHeight = 1 / float(height);
-		float fov = 30, aspectratio = width / float(height);
-		float angle = tan(M_PI * 0.5 * fov / 180.);
-		// Loop
-		while(num_line < (int) end - 1) {
-			num_line ++;
-			unsigned y = (unsigned) num_line;
-			for (unsigned x = 0; x < width; ++x) {
-				float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
-				float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
-				Vec3f raydir(xx, yy, -1);
-				raydir.normalize();
-				pixel[x + width * y] = trace(Vec3f(0), raydir, spheres, 0);
-			}
-		}
-	};
+  // init thread
+  float invWidth = 1 / float(width), invHeight = 1 / float(height);
+  float fov = 30, aspectratio = width / float(height);
+  float angle = tan(M_PI * 0.5 * fov / 180.);
+  // Loop
+  while(num_line < (int) end - 1) {
+  num_line ++;
+  unsigned y = (unsigned) num_line;
+  for (unsigned x = 0; x < width; ++x) {
+  float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
+  float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
+  Vec3f raydir(xx, yy, -1);
+  raydir.normalize();
+  pixel[x + width * y] = trace(Vec3f(0), raydir, spheres, 0);
+  }
+  }
+  };
 
   for (unsigned c = 0; c < num_cpus-1; ++c) {
     threads.push_back( std::thread(iterate) );
@@ -270,29 +270,29 @@ void render (
 // we render that scene, by calling the render() function.
 //[/comment]
 int main (int nargs, char* argv[]) {
-	srand48(13);
-	std::vector<Sphere> spheres;
-	// position, radius, surface color, reflectivity, transparency, emission color
-	spheres.push_back(Sphere(Vec3f( 0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
-	const int nbSpheres = 100;
-	for ( int i = 0; i < nbSpheres; ++i ) {
-		float x,y,z,rd,r,b,g,t;
-		x = (rand()/(1.*RAND_MAX))*20.-10.;
-		y = (rand()/(1.*RAND_MAX))*2.-1.;
-		z = (rand()/(1.*RAND_MAX))*10.-25.;
-		rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
-		r  = (rand()/(1.*RAND_MAX));
-		g  = (rand()/(1.*RAND_MAX));
-		b  = (rand()/(1.*RAND_MAX));
-		t  = (rand()/(1.*RAND_MAX))*0.5;
-		spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
-	}
-	// light
-	spheres.push_back(Sphere(Vec3f( 0.0,     20, -30),     3, Vec3f(0.00, 0.00, 0.00), 0, 0.0, Vec3f(3)));
-	// render(spheres);
+  srand48(13);
+  std::vector<Sphere> spheres;
+  // position, radius, surface color, reflectivity, transparency, emission color
+  spheres.push_back(Sphere(Vec3f( 0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
+  const int nbSpheres = 100;
+  for ( int i = 0; i < nbSpheres; ++i ) {
+  float x,y,z,rd,r,b,g,t;
+  x = (rand()/(1.*RAND_MAX))*20.-10.;
+  y = (rand()/(1.*RAND_MAX))*2.-1.;
+  z = (rand()/(1.*RAND_MAX))*10.-25.;
+  rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
+  r  = (rand()/(1.*RAND_MAX));
+  g  = (rand()/(1.*RAND_MAX));
+  b  = (rand()/(1.*RAND_MAX));
+  t  = (rand()/(1.*RAND_MAX))*0.5;
+  spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
+  }
+  // light
+  spheres.push_back(Sphere(Vec3f( 0.0,     20, -30),     3, Vec3f(0.00, 0.00, 0.00), 0, 0.0, Vec3f(3)));
+  // render(spheres);
 
   int provided;
-	MPI_Init_thread(&nargs, &argv, MPI_THREAD_MULTIPLE, &provided);
+  MPI_Init_thread(&nargs, &argv, MPI_THREAD_MULTIPLE, &provided);
 
   // Start MPI
   // MPI_Init(&nargs, &argv);
@@ -304,8 +304,8 @@ int main (int nargs, char* argv[]) {
   int master = 0;
   int endMsg = -1;
   int bandHeight = 16;
-	unsigned width = 1280, height = 1024;
-	unsigned size = width * height* 3;
+  unsigned width = 1280, height = 1024;
+  unsigned size = width * height* 3;
   // Vec3f *image = new Vec3f[width * height], *pixel = image;
 
   if (rank == master) {
@@ -317,24 +317,24 @@ int main (int nargs, char* argv[]) {
       MPI_Send(&countTask, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
       countTask++;
     }
-	  Vec3f *image = new Vec3f[width * height], *pixel = image;
-	  // Loop
-	  int nbTask = (int) height / bandHeight;
-	  while (countTask <= nbTask) {
-	    Vec3f *partial = new Vec3f[width * height];
+    Vec3f *image = new Vec3f[width * height], *pixel = image;
+    // Loop
+    int nbTask = (int) height / bandHeight;
+    while (countTask <= nbTask) {
+      Vec3f *partial = new Vec3f[width * height];
       MPI_Recv(partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
       printf("Sending task %i\n", countTask);
       MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
       countTask++;
     }
-	  // Finalize
+    // Finalize
     for (int i = 1; i < nbp; ++i) {
       printf("Sending task %i\n", -1);
       MPI_Send(&endMsg, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
     }
     saveImage(width, height, image);
-	  delete [] image;
+    delete [] image;
   } else {
     int countNum = 0;
     while (countNum != endMsg) {
@@ -347,7 +347,7 @@ int main (int nargs, char* argv[]) {
         unsigned end = (countNum + 1) * bandHeight;
         render(width, height, start, end, partial, spheres);
         MPI_Send(partial, size, MPI_FLOAT, master, 101, MPI_COMM_WORLD);
-	      delete [] partial;
+        delete [] partial;
       }
     }
   }
@@ -355,5 +355,5 @@ int main (int nargs, char* argv[]) {
   // End MPI
   MPI_Finalize();
 
-	return 0;
+  return 0;
 }
