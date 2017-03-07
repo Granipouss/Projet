@@ -2,6 +2,7 @@
 
 FILES=$(sort $(wildcard *cpp))
 BINARIES=$(patsubst %.cpp,%,$(FILES))
+CXX=mpiCC
 
 #TARGET=raytracer2
 TARGET=$(lastword $(BINARIES))
@@ -18,7 +19,7 @@ default: $(TARGET) check
 
 
 check: 
-	time -p ./$(TARGET) $(THREADS)
+	time -p mpirun -np 3 ./$(TARGET) $(THREADS)
 	md5sum untitled.ppm
 	@echo "09042d2566e20716029330d16850b1b8  reference.ppm (reference for 100 spheres)"
 

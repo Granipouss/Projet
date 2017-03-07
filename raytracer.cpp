@@ -29,13 +29,14 @@
 #include <cassert>
 #include <atomic>
 #include <thread>
+#include <mpi.h>
 
 #if defined __linux__ || defined __APPLE__
-// "Compiled for Linux
+  // "Compiled for Linux
 #else
-// Windows doesn't define these values by default, Linux does
-#define M_PI 3.141592653589793
-#define INFINITY 1e8
+  // Windows doesn't define these values by default, Linux does
+  #define M_PI 3.141592653589793
+  #define INFINITY 1e8
 #endif
 
 template<typename T>
@@ -212,26 +213,43 @@ Vec3f trace(
     return surfaceColor + sphere->emissionColor;
 }
 
+void saveImage (unsigned width, unsigned height, Vec3f* image) {
+	// Save result to a PPM image (keep these flags if you compile under Windows)
+	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
+	ofs << "P6\n" << width << " " << height << "\n255\n";
+	for (unsigned i = 0; i < width * height; ++i) {
+		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
+					 (unsigned char)(std::min(float(1), image[i].y) * 255) <<
+					 (unsigned char)(std::min(float(1), image[i].z) * 255);
+	}
+	ofs.close();
+}
+
 //[comment]
 // Main rendering function. We compute a camera ray for each pixel of the image
 // trace it and return a color. If the ray hits a sphere, we return the color of the
 // sphere at the intersection point, else we return the background color.
 //[/comment]
-void render(const std::vector<Sphere> &spheres) {
-	unsigned width = 1280, height = 1024;
-	Vec3f *image = new Vec3f[width * height], *pixel = image;
+void render (
+  const unsigned width,
+  const unsigned height,
+  const unsigned start,
+  const unsigned end,
+  Vec3f* pixel,
+  const std::vector<Sphere> &spheres
+ ) {
 	
-  volatile std::atomic_int num_line(-1);
+  volatile std::atomic_int num_line(start - 1);
 	
   unsigned num_cpus = std::thread::hardware_concurrency();
   std::vector<std::thread> threads;
-  auto iterate = [width, height, &num_line, &pixel, &spheres] () {
+  auto iterate = [width, height, end, &num_line, &pixel, &spheres] () {
 		// init thread
 		float invWidth = 1 / float(width), invHeight = 1 / float(height);
 		float fov = 30, aspectratio = width / float(height);
 		float angle = tan(M_PI * 0.5 * fov / 180.);
 		// Loop
-		while(num_line < (int) height-1) { 
+		while(num_line < (int) end - 1) {
 			num_line ++;
 			unsigned y = (unsigned) num_line;
 			for (unsigned x = 0; x < width; ++x) {
@@ -249,17 +267,6 @@ void render(const std::vector<Sphere> &spheres) {
   }
   iterate();
   for (auto& t : threads) t.join();
-	
-	// Save result to a PPM image (keep these flags if you compile under Windows)
-	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
-	ofs << "P6\n" << width << " " << height << "\n255\n";
-	for (unsigned i = 0; i < width * height; ++i) {
-		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-					 (unsigned char)(std::min(float(1), image[i].y) * 255) <<
-					 (unsigned char)(std::min(float(1), image[i].z) * 255);
-	}
-	ofs.close();
-	delete [] image;
 }
 
 //[comment]
@@ -267,7 +274,7 @@ void render(const std::vector<Sphere> &spheres) {
 // and 1 light (which is also a sphere). Then, once the scene description is complete
 // we render that scene, by calling the render() function.
 //[/comment]
-int main(int argc, char **argv) {
+int main (int nargs, char* argv[]) {
 	srand48(13);
 	std::vector<Sphere> spheres;
 	// position, radius, surface color, reflectivity, transparency, emission color
@@ -287,7 +294,71 @@ int main(int argc, char **argv) {
 	}
 	// light
 	spheres.push_back(Sphere(Vec3f( 0.0,     20, -30),     3, Vec3f(0.00, 0.00, 0.00), 0, 0.0, Vec3f(3)));
-	render(spheres);
+	// render(spheres);
 	
+  int provided;
+	MPI_Init_thread(&nargs, &argv, MPI_THREAD_MULTIPLE, &provided);
+  
+  // Start MPI
+  // MPI_Init(&nargs, &argv);
+  int rank, nbp;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &nbp);
+  MPI_Status status;
+  
+  int master = 0;
+  int endMsg = -1;
+  int bandHeight = 16;
+	unsigned width = 1280, height = 1024;
+	unsigned size = width * height* 3;
+  // Vec3f *image = new Vec3f[width * height], *pixel = image;
+  
+  if (rank == master) {
+    printf("I'm the master\n");
+    // Init
+    int countTask = 0;
+    for (int i = 1; i < nbp; ++i) {
+      printf("Sending task %i\n", countTask);
+      MPI_Send(&countTask, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
+      countTask++;
+    }
+	  Vec3f *image = new Vec3f[width * height], *pixel = image;
+	  // Loop
+	  int nbTask = (int) height / bandHeight;
+	  while (countTask < nbTask) {
+	    Vec3f *partial = new Vec3f[width * height];
+      MPI_Recv(&partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
+      printf("Sending task %i\n", countTask);
+      MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
+      countTask++;
+    }
+	  // Finalize
+    for (int i = 1; i < nbp; ++i) {
+      printf("Sending task %i\n", -1);
+      MPI_Send(&endMsg, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
+    }
+    saveImage(width, height, image);
+	  delete [] image;
+  } else {
+    int countNum = 0;
+    while (countNum != endMsg) {
+      MPI_Recv(&countNum, 1, MPI_INT, master, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      printf("Process %i received number %d from process 0\n", rank, countNum);
+      if (countNum != endMsg) {
+        printf("Process %i Doing something\n", rank);
+        Vec3f *partial = new Vec3f[width * height];
+        unsigned start = countNum * bandHeight;
+        unsigned end = (countNum + 1) * bandHeight;
+        render(width, height, start, end, partial, spheres);
+        MPI_Send(&partial, size, MPI_FLOAT, master, 101, MPI_COMM_WORLD);
+      }
+    }
+  }
+  	
+  // End MPI
+  MPI_Finalize();
+  
+  
 	return 0;
 }
