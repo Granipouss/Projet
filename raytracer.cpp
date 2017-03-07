@@ -334,7 +334,7 @@ int main (int nargs, char* argv[]) {
       MPI_Send(&endMsg, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
     }
     saveImage(width, height, image);
-	  delete [] image;
+    delete [] image;
   } else {
     int countNum = 0;
     while (countNum != endMsg) {
@@ -347,7 +347,7 @@ int main (int nargs, char* argv[]) {
         unsigned end = (countNum + 1) * bandHeight;
         render(width, height, start, end, partial, spheres);
         MPI_Send(partial, size, MPI_FLOAT, master, 101, MPI_COMM_WORLD);
-	      delete [] partial;
+        delete [] partial;
       }
     }
   }
@@ -355,5 +355,5 @@ int main (int nargs, char* argv[]) {
   // End MPI
   MPI_Finalize();
 
-	return 0;
+  return 0;
 }
