@@ -323,10 +323,13 @@ int main (int nargs, char* argv[]) {
     while (countTask <= nbTask) {
       Vec3f *partial = new Vec3f[width * height];
       MPI_Recv(partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      printf("Recieving result from %i\n", status.MPI_SOURCE);
       for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
-      printf("Sending task %i\n", countTask);
-      MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
-      countTask++;
+      if (countTask <= nbTask) {
+        printf("Sending task %i\n", countTask);
+        MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
+        countTask++;
+      }
     }
     // Finalize
     for (int i = 1; i < nbp; ++i) {
