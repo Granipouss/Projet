@@ -327,7 +327,7 @@ int main (int nargs, char* argv[]) {
 	  int nbTask = (int) height / bandHeight;
 	  while (countTask < nbTask) {
 	    Vec3f *partial = new Vec3f[width * height];
-      MPI_Recv(&partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      MPI_Recv(partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
       printf("Sending task %i\n", countTask);
       MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
@@ -351,7 +351,8 @@ int main (int nargs, char* argv[]) {
         unsigned start = countNum * bandHeight;
         unsigned end = (countNum + 1) * bandHeight;
         render(width, height, start, end, partial, spheres);
-        MPI_Send(&partial, size, MPI_FLOAT, master, 101, MPI_COMM_WORLD);
+        MPI_Send(partial, size, MPI_FLOAT, master, 101, MPI_COMM_WORLD);
+	      delete [] partial;
       }
     }
   }
