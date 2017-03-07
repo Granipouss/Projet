@@ -214,8 +214,8 @@ void saveImage (unsigned width, unsigned height, Vec3f* image) {
   ofs << "P6\n" << width << " " << height << "\n255\n";
   for (unsigned i = 0; i < width * height; ++i) {
   ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-   (unsigned char)(std::min(float(1), image[i].y) * 255) <<
-   (unsigned char)(std::min(float(1), image[i].z) * 255);
+    (unsigned char)(std::min(float(1), image[i].y) * 255) <<
+    (unsigned char)(std::min(float(1), image[i].z) * 255);
   }
   ofs.close();
 }
@@ -232,9 +232,8 @@ void render (
   const unsigned end,
   Vec3f* pixel,
   const std::vector<Sphere> &spheres
- ) {
+) {
   volatile std::atomic_int num_line(start - 1);
-
   unsigned num_cpus = std::thread::hardware_concurrency();
   std::vector<std::thread> threads;
   auto iterate = [width, height, end, &num_line, &pixel, &spheres] () {
@@ -255,12 +254,10 @@ void render (
       }
     }
   };
-
   for (unsigned c = 0; c < num_cpus-1; ++c) {
     threads.push_back( std::thread(iterate) );
   }
   iterate();
-
   for (auto& t : threads) t.join();
 }
 
@@ -276,37 +273,37 @@ int main (int nargs, char* argv[]) {
   spheres.push_back(Sphere(Vec3f( 0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
   const int nbSpheres = 100;
   for ( int i = 0; i < nbSpheres; ++i ) {
-  float x,y,z,rd,r,b,g,t;
-  x = (rand()/(1.*RAND_MAX))*20.-10.;
-  y = (rand()/(1.*RAND_MAX))*2.-1.;
-  z = (rand()/(1.*RAND_MAX))*10.-25.;
-  rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
-  r  = (rand()/(1.*RAND_MAX));
-  g  = (rand()/(1.*RAND_MAX));
-  b  = (rand()/(1.*RAND_MAX));
-  t  = (rand()/(1.*RAND_MAX))*0.5;
-  spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
+    float x,y,z,rd,r,b,g,t;
+    x = (rand()/(1.*RAND_MAX))*20.-10.;
+    y = (rand()/(1.*RAND_MAX))*2.-1.;
+    z = (rand()/(1.*RAND_MAX))*10.-25.;
+    rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
+    r  = (rand()/(1.*RAND_MAX));
+    g  = (rand()/(1.*RAND_MAX));
+    b  = (rand()/(1.*RAND_MAX));
+    t  = (rand()/(1.*RAND_MAX))*0.5;
+    spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
   }
   // light
   spheres.push_back(Sphere(Vec3f( 0.0,     20, -30),     3, Vec3f(0.00, 0.00, 0.00), 0, 0.0, Vec3f(3)));
   // render(spheres);
 
-  int provided;
-  MPI_Init_thread(&nargs, &argv, MPI_THREAD_MULTIPLE, &provided);
+int provided;
+MPI_Init_thread(&nargs, &argv, MPI_THREAD_MULTIPLE, &provided);
 
-  // Start MPI
-  // MPI_Init(&nargs, &argv);
-  int rank, nbp;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &nbp);
-  MPI_Status status;
+// Start MPI
+// MPI_Init(&nargs, &argv);
+int rank, nbp;
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &nbp);
+MPI_Status status;
 
-  int master = 0;
-  int endMsg = -1;
-  int bandHeight = 128;
-  unsigned width = 1280, height = 1024;
-  unsigned size = width * height* 3;
-  // Vec3f *image = new Vec3f[width * height], *pixel = image;
+int master = 0;
+int endMsg = -1;
+int bandHeight = 128;
+unsigned width = 1280, height = 1024;
+unsigned size = width * height* 3;
+// Vec3f *image = new Vec3f[width * height], *pixel = image;
 
   // = Master ===
   if (rank == master) {
@@ -337,7 +334,7 @@ int main (int nargs, char* argv[]) {
     }
     saveImage(width, height, image);
     delete [] image;
-    
+
   // = Slaves ===
   } else {
     int countNum = 0;
