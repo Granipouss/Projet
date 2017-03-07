@@ -303,48 +303,47 @@ int main (int nargs, char* argv[]) {
 
   int master = 0;
   int endMsg = -1;
-  int bandHeight = 16;
+  int bandHeight = 32;
   unsigned width = 1280, height = 1024;
   unsigned size = width * height* 3;
   // Vec3f *image = new Vec3f[width * height], *pixel = image;
 
+  // = Master ===
   if (rank == master) {
-    printf("I'm the master\n");
     // Init
     int countTask = 0;
-    for (int i = 1; i < nbp; ++i) {
-      printf("Sending task %i\n", countTask);
-      MPI_Send(&countTask, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
+    for (int p = 1; p < nbp; ++p) {
+      MPI_Send(&countTask, 1, MPI_INT, p, 101, MPI_COMM_WORLD);
       countTask++;
     }
     Vec3f *image = new Vec3f[width * height], *pixel = image;
     // Loop
     int nbTask = (int) height / bandHeight;
-    while (countTask <= nbTask) {
+    while (countTask < nbTask) {
       Vec3f *partial = new Vec3f[width * height];
       MPI_Recv(partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-      printf("Recieving result from %i\n", status.MPI_SOURCE);
       for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
-      if (countTask <= nbTask) {
-        printf("Sending task %i\n", countTask);
-        MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
-        countTask++;
-      }
+      MPI_Send(&countTask, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
+      countTask++;
     }
     // Finalize
-    for (int i = 1; i < nbp; ++i) {
-      printf("Sending task %i\n", -1);
-      MPI_Send(&endMsg, 1, MPI_INT, i, 101, MPI_COMM_WORLD);
+    int p = 1;
+    while (p < nbp) {
+      Vec3f *partial = new Vec3f[width * height];
+      MPI_Recv(partial, size, MPI_FLOAT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      for (unsigned i = 0; i < width * height; ++i) pixel[i] += partial[i];
+      MPI_Send(&endMsg, 1, MPI_INT, status.MPI_SOURCE, 101, MPI_COMM_WORLD);
+      p++;
     }
     saveImage(width, height, image);
     delete [] image;
+    
+  // = Slaves ===
   } else {
     int countNum = 0;
     while (countNum != endMsg) {
       MPI_Recv(&countNum, 1, MPI_INT, master, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      printf("Process %i received number %d from process 0\n", rank, countNum);
       if (countNum != endMsg) {
-        printf("Process %i Doing something\n", rank);
         Vec3f *partial = new Vec3f[width * height];
         unsigned start = countNum * bandHeight;
         unsigned end = (countNum + 1) * bandHeight;
