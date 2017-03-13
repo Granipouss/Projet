@@ -275,16 +275,16 @@ int main (int nargs, char* argv[]) {
   spheres.push_back(Sphere(Vec3f( 0.0, -10004, -20), 10000, Vec3f(0.20, 0.20, 0.20), 0, 0.0));
   const int nbSpheres = 100;
   for ( int i = 0; i < nbSpheres; ++i ) {
-  float x,y,z,rd,r,b,g,t;
-  x = (rand()/(1.*RAND_MAX))*20.-10.;
-  y = (rand()/(1.*RAND_MAX))*2.-1.;
-  z = (rand()/(1.*RAND_MAX))*10.-25.;
-  rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
-  r  = (rand()/(1.*RAND_MAX));
-  g  = (rand()/(1.*RAND_MAX));
-  b  = (rand()/(1.*RAND_MAX));
-  t  = (rand()/(1.*RAND_MAX))*0.5;
-  spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
+    float x,y,z,rd,r,b,g,t;
+    x = (rand()/(1.*RAND_MAX))*20.-10.;
+    y = (rand()/(1.*RAND_MAX))*2.-1.;
+    z = (rand()/(1.*RAND_MAX))*10.-25.;
+    rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
+    r  = (rand()/(1.*RAND_MAX));
+    g  = (rand()/(1.*RAND_MAX));
+    b  = (rand()/(1.*RAND_MAX));
+    t  = (rand()/(1.*RAND_MAX))*0.5;
+    spheres.push_back(Sphere(Vec3f( x,      y, z),     rd, Vec3f(r, g, b), 1, t));
   }
   // light
   spheres.push_back(Sphere(Vec3f( 0.0,     20, -30),     3, Vec3f(0.00, 0.00, 0.00), 0, 0.0, Vec3f(3)));
