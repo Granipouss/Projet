@@ -16,6 +16,7 @@ endif
 
 $(TARGET):
 	nvcc $(CXXFLAGS) $(FILES) -o $(TARGET)
+	make check
 
 default: $(TARGET) check
 
