@@ -225,7 +225,6 @@ void render () {
 // and 1 light (which is also a sphere). Then, once the scene description is complete
 // we render that scene, by calling the render() function.
 int main(int argc, char **argv) {
-  printf("Starting...\n");
   srand48(13);
   // Create scene on host
   Sphere *scene_h = new Sphere[nbSpheres + 2];
@@ -234,12 +233,24 @@ int main(int argc, char **argv) {
   scene_h[0] = { make_float3(0, -10004,  -2), 1e8, make_float3(0.2f), make_float3(0), 0, 0 }; // Background
   scene_h[1] = { make_float3(0,     20, -30),   9, make_float3(0.0f), make_float3(3), 0, 0 }; // Light
   for ( int i = 0; i < nbSpheres; ++i ) {
-    float rd = randF(0.1f, 1.0f);
-    float tr = randF(0.5f, 1.0f);
-    float re = randF(0.0f, 1.0f);
-    float3 center = make_float3(randF(-10, 10), randF(-1, 1), randF(-25, -15));
-    float3 color = make_float3(randF(0, 1), randF(0, 1), randF(0, 1));
-    scene_h[2 + i] = { center, rd * rd, color, make_float3(0), tr, re };
+
+    float x,y,z,rd,r,b,g,t;
+    x = (rand()/(1.*RAND_MAX))*20.-10.;
+    y = (rand()/(1.*RAND_MAX))*2.-1.;
+    z = (rand()/(1.*RAND_MAX))*10.-25.;
+    rd = (rand()/(1.*RAND_MAX))*0.9+0.1;
+    r  = (rand()/(1.*RAND_MAX));
+    g  = (rand()/(1.*RAND_MAX));
+    b  = (rand()/(1.*RAND_MAX));
+    t  = (rand()/(1.*RAND_MAX))*0.5;
+    scene_h[2 + i] = { make_float3(x, y, z), rd * rd, make_float3(r, g, b), make_float3(0), t, 1 };
+
+    // float rd = randF(0.1f, 1.0f);
+    // float tr = randF(0.5f, 1.0f);
+    // float re = randF(0.0f, 1.0f);
+    // float3 center = make_float3(randF(-10, 10), randF(-1, 1), randF(-25, -15));
+    // float3 color = make_float3(randF(0, 1), randF(0, 1), randF(0, 1));
+    // scene_h[2 + i] = { center, rd * rd, color, make_float3(0), tr, re };
   }
   // Copy the host's scene to a device constante
   cudaMemcpyToSymbol(spheres,  scene_h, (nbSpheres + 2) * sizeof(Sphere));
@@ -247,6 +258,5 @@ int main(int argc, char **argv) {
   // Render the scene
   render();
 
-  printf("Done!\n");
   return 0;
 }
