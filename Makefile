@@ -15,7 +15,7 @@ else
 endif
 
 $(TARGET):
-	nvcc $(NVCCFLAGS) $(FILES) -o $(TARGET)
+	nvcc $(CXXFLAGS) $(FILES) -o $(TARGET)
 
 default: $(TARGET) check
 

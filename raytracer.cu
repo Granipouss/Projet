@@ -28,7 +28,15 @@
 #include <vector_types.h>
 #include "cutil_math.h"
 
-#define M_PI 3.14159265359f  // pi
+
+#if defined __linux__ || defined __APPLE__
+  // "Compiled for Linux
+#else
+  // Windows doesn't define these values by default, Linux does
+  #define M_PI 3.14159265359f  // pi
+  #define INFINITY 1e8
+#endif
+
 #define width 1280  // screenwidth
 #define height 1024 // screenheight
 #define tileSize 16
