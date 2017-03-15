@@ -213,9 +213,9 @@ void saveImage (unsigned width, unsigned height, Vec3f* image) {
   std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
   ofs << "P6\n" << width << " " << height << "\n255\n";
   for (unsigned i = 0; i < width * height; ++i) {
-  ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-    (unsigned char)(std::min(float(1), image[i].y) * 255) <<
-    (unsigned char)(std::min(float(1), image[i].z) * 255);
+  ofs << (unsigned char)(std::min(float(1), image[i].x) * 255)
+      << (unsigned char)(std::min(float(1), image[i].y) * 255)
+      << (unsigned char)(std::min(float(1), image[i].z) * 255);
   }
   ofs.close();
 }
@@ -243,8 +243,7 @@ void render (
     float angle = tan(M_PI * 0.5 * fov / 180.);
     // Loop
     while(num_line < (int) end - 1) {
-      num_line ++;
-      unsigned y = (unsigned) num_line;
+      unsigned y = (unsigned) ++num_line;
       for (unsigned x = 0; x < width; ++x) {
         float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
         float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
