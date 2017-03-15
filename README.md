@@ -1,6 +1,6 @@
-# Projet
+# Projet d'IN203
 
-Results
+## Comparaison des méthodes MPI vs CUDA
 
 |      | Simple | Threaded<br>+ MPI | Cuda |
 |------|--------|-------------------|------|
@@ -8,9 +8,21 @@ Results
 | user |  10.32 |             17.34 | 0.14 |
 | sys  |   0.00 |              0.17 | 0.35 |
 
-![Image of Yaktocat](graph.png)
+<small>(Le temps réel est celui que l'on considèrera principalement)</small>
 
-## Raw stats for MPI (without saving)
+Il est évident qu'avec une accélération de l'ordre de la vingtaine CUDA est bien plus efficace que MPI et le multithreading (speedu de 6.6 environs).
+
+Cela s'explique par le de processeurs du GPU et par la facilité de paralléliser par pixel le raytracing.
+
+## Tests des paramètres de la Paraléllisation
+
+Afin d'avoir une meilleur comparaison, on ne va plus enregistrer l'image (accès au disque, long et incompressible). Les paramètre que l'on va faire varier sont le nombre de processus MPI et la taille des tâches (largeur des bandes) à effectuer par les esclaves.
+
+![Graph](graph.png)
+
+Si la parallélisation (qui commence à partir de 3 processus soit 2 esclaves) est évidemment efficace, l'influence des paramètres est plus subtile. Il semble qu'un petit nombre de processus effectuant des tâches relativement importante est optimal ici.
+
+## Statistiques brutes
 #### bandHeight 16
  2 procs : real 8.76 / user 24.46 / sys 0.25<br>
  3 procs : real 1.74 / user 17.44 / sys 0.26<br>
